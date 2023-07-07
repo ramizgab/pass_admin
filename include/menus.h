@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../include/files.h"
+#include "../include/encryption.h"
 
 
 void menu_principal();
 
 int login();
 
+int registrar();

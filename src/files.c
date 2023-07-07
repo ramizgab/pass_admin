@@ -62,14 +62,14 @@ void print_str(char* string) {
 int register_string(const char* string, const char* file) {
 
 	if (!file_exists(file)) {
-		fprintf(stderr, "Error: archivo no existe");
+		fprintf(stderr, "Error: archivo \"%s\" no existe", file);
 		return 0;
 	}
 
 	FILE* archivo = fopen(file, "a");
 
 	if (archivo == NULL) {
-		fprintf(stderr, "Error: no se pudo abrir el archivo %s", file);
+		fprintf(stderr, "Error: no se pudo abrir el archivo %s\n", file);
 		return 0;
 	}
 
@@ -83,14 +83,14 @@ int register_string(const char* string, const char* file) {
 
 int new_line(const char* file) {
 	if (!file_exists(file)) {
-		fprintf(stderr, "Error: archivo no existe");
+		fprintf(stderr, "Error: no se pudo abrir el archivo %s\n", file);
 		return 0;
 	}
 
 	FILE* archivo = fopen(file, "a");
 
 	if (archivo == NULL) {
-		fprintf(stderr, "Error: no se pudo abrir el archivo %s", file);
+		fprintf(stderr, "Error: no se pudo abrir el archivo %s\n", file);
 		return 0;
 	}
 
@@ -101,20 +101,20 @@ int new_line(const char* file) {
 	return 1;
 }
 
-int doubledots(const char* file) {
+int space(const char* file) {
 	if (!file_exists(file)) {
-		fprintf(stderr, "Error: archivo no existe");
+		fprintf(stderr, "Error: no se pudo abrir el archivo %s\n", file);
 		return 0;
 	}
 
 	FILE* archivo = fopen(file, "a");
 
 	if (archivo == NULL) {
-		fprintf(stderr, "Error: no se pudo abrir el archivo %s", file);
+		fprintf(stderr, "Error: no se pudo abrir el archivo %s\n", file);
 		return 0;
 	}
 
-	fputc(':', archivo);
+	fputc(' ', archivo);
 
 	fclose(archivo);
 
@@ -124,11 +124,11 @@ int doubledots(const char* file) {
 
 int find_user(char* input, char* users, char** pass) {
 
-	char delim[] = ":";
+	char delim[] = " ";
 	FILE* file = fopen(users, "r");
 	if (file == NULL)
 	{
-		printf("users no encontrado: %s\n", users);
+		printf(" \"%s\" no encontrado en %s\n", input, "../data/users.txt");
 		return 0;
 	}
 
@@ -152,4 +152,31 @@ int find_user(char* input, char* users, char** pass) {
 
 	fclose(file);
 	return 0; // Input string not found in the file
+}
+
+int end_character(const char* file) {
+
+	if (!file_exists(file)) {
+		fprintf(stderr, "Error: archivo \"%s\" no existe\n", file);
+		return -1;
+	}
+
+	FILE *archivo = fopen(file, "r");  
+    if (file == NULL) {
+        printf("Failed to open the file \"%s\".\n", file);
+        return -1;
+    }
+    
+    // Go to the last character
+    if (fseek(archivo, -1, SEEK_END) != 0) {
+        printf("Failed to go to the last character.\n");
+        fclose(archivo);
+        return -1;
+    }
+    
+    // Read and print the last character
+    int lastChar = fgetc(archivo);
+    
+    fclose(archivo);
+	return lastChar;
 }
