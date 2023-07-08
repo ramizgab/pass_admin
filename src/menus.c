@@ -1,4 +1,4 @@
-#include "../include/menus.h"
+ #include "../include/menus.h"
 
 void menu_principal() {
     int numero = 0;
@@ -97,7 +97,7 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
 int registrar() {
 
     char users[] = "../data/users.txt";
-    char* buffer;
+    char* buffer = malloc(sizeof(char)*50);
     // cosas que determina el usuariok, input
     char* new_user;
     char* new_password;
@@ -179,6 +179,7 @@ int registrar() {
             }
         }
         else {
+            free(buffer);
             free(new_user);
             printf("El usuario ya existe. Intente con un nuevo usuario. \n");
         }
