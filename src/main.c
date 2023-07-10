@@ -11,7 +11,7 @@
 
 int main() {
     
-    registrar();
+    menu_principal();
 
     return 0;
 

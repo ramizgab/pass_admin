@@ -30,6 +30,9 @@ char* get_string_50() {
 
 		c = getchar();
 
+		if (inputLength == 0 && (c == '\n' || c == '\r'))
+            continue;
+
 		if (c == '\n' || c == EOF) {
 			input[inputLength] = '\0';
 			break;
@@ -128,7 +131,7 @@ int find_user(char* input, char* users, char** pass) {
 	FILE* file = fopen(users, "r");
 	if (file == NULL)
 	{
-		printf(" \"%s\" no encontrado en %s\n", input, "../data/users.txt");
+		printf(" \"%s\" no encontrado\n ", users);
 		return 0;
 	}
 

@@ -2,6 +2,7 @@
 
 void menu_principal() {
     int numero = 0;
+    int skip = 0;
 
     while (1) {
         printf("----------------------------macua.com---------------------------- \n");
@@ -25,15 +26,24 @@ void menu_principal() {
             break;  // Exit the loop
         }
         if (numero == 2) {
-            printf("Buenisimo, bienvenido al menu de registro\n");
-            break;  // Exit the loop
+            if (!registrar()){
+                printf("Hubo un error con el registro. \n");
+            }
+            else {
+                printf("El registro fue todo un exito!\n");
+            }
+            skip = 1;
+            printf("\n");
         }
         if (numero == 3) {
             printf("Buenisimo, Adios!\n");
             break;  // Exit the loop
         }
 
-        printf("Opcion no valida. Por favor, intente nuevamente.\n\n");
+        if (!skip) {
+            printf("Opcion no valida. Por favor, intente nuevamente.\n\n");
+        }
+        skip = 0;
     }
 }
 
