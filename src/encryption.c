@@ -5,7 +5,7 @@ int deriveKey(const char* password, unsigned char* key, unsigned char* salt) {
     const int iterations = 10000;  // Number of iterations
     const int key_length = 32;     // AES-256 key length in bytes (256 bits)
 
-    if (PKCS5_PBKDF2_HMAC((const char*)password, strlen((const char*)password), salt, strlen((const char*)salt), iterations, EVP_sha256(), key_length, key) != 1) {
+    if (PKCS5_PBKDF2_HMAC((const char*)password, strlen((const char*)password), salt, sizeof(salt), iterations, EVP_sha256(), key_length, key) == 0) {
         fprintf(stderr, "Key derivation failed.\n");
         return 0;
     }
@@ -15,7 +15,6 @@ int deriveKey(const char* password, unsigned char* key, unsigned char* salt) {
 
 
 int encryptAES256(const char* plaintext, int plaintext_len, const unsigned char* key, unsigned char* ciphertext, const unsigned char* iv) {
-
     EVP_CIPHER_CTX* ctx;
 
     int len;
@@ -32,25 +31,30 @@ int encryptAES256(const char* plaintext, int plaintext_len, const unsigned char*
         return 0;
     }
 
+    /* Enable padding and set the padding mode */
+    EVP_CIPHER_CTX_set_padding(ctx, 1); // Enable padding
+    EVP_CIPHER_CTX_set_padding(ctx, EVP_PADDING_PKCS7); // Set padding mode to PKCS7
+
     /* Provide the message to be encrypted, and obtain the encrypted output */
-    if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len)) {
+    if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, (const unsigned char*)plaintext, plaintext_len)) {
         EVP_CIPHER_CTX_free(ctx);
         return 0;
     }
     ciphertext_len = len;
 
     /* Finalize the encryption */
-    if (1 != EVP_EncryptFinal_ex(ctx, ciphertext, &len)) {
+    if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) {
         EVP_CIPHER_CTX_free(ctx);
         return 0;
     }
-    ciphertext_len = len;
+    ciphertext_len += len;
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
 
     return ciphertext_len;
 }
+
 
 // Function to decrypt the encrypted password
 int decryptAES256(const unsigned char* ciphertext, int ciphertext_len, const unsigned char* key, char* plaintext, const unsigned char* iv) {
@@ -70,25 +74,34 @@ int decryptAES256(const unsigned char* ciphertext, int ciphertext_len, const uns
         return 0;
     }
 
+    /* Enable padding and set the padding mode */
+    EVP_CIPHER_CTX_set_padding(ctx, 1); // Enable padding
+    EVP_CIPHER_CTX_set_padding(ctx, EVP_PADDING_PKCS7); // Set padding mode to PKCS7
+
     /* Provide the ciphertext to be decrypted, and obtain the decrypted output */
-    if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
+    if (1 != EVP_DecryptUpdate(ctx, (unsigned char*)plaintext, &len, ciphertext, ciphertext_len)) {
         EVP_CIPHER_CTX_free(ctx);
         return 0;
     }
     plaintext_len = len;
 
     /* Finalize the decryption */
-    if (1 != EVP_DecryptFinal_ex(ctx, plaintext, &len)) {
+    if (1 != EVP_DecryptFinal_ex(ctx, (unsigned char*)plaintext + len, &len)) {
         EVP_CIPHER_CTX_free(ctx);
         return 0;
     }
-    plaintext_len = len;
+    plaintext_len += len;
+
+    /* Null-terminate the decrypted plaintext */
+    plaintext[plaintext_len] = '\0';
 
     /* Clean up */
     EVP_CIPHER_CTX_free(ctx);
 
     return plaintext_len;
 }
+
+
 
 void generateRandomIV(unsigned char* iv, int iv_length) {
     // Generate a random IV

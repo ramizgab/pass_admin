@@ -18,7 +18,9 @@ int register_string(const char *string, const char *file);
 int new_line(const char* file);
 //pone un separador espacio, 1 si lo logro 0 is no 
 int space(const char* file);
-// retorna 1 si encuentra el usuario, guarda la contrasena asociada en la variable pass y retorna 0 si no encuentra el usuario y pass NULL
-int find_user(char* input, char* users, char** pass);
+// retorna 1 si encuentra el usuario, aloca y guarda contrasena encriptada, salt y vector inicial y retorna 0 si no encuentra el usuario y pass NULL en las tres variables
+int find_user(char* input, char* users, char** pass, char **salt, char **vect);
+// retorna 1 si encuentra el usuario
+int check_user(char* input, char* users);
 // retorna -1 si hubo un error de algun tipo, retorna int relacionado con el ultimo caracter en el archivo
 int end_character(const char* file);

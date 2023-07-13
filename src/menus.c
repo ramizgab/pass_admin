@@ -1,4 +1,4 @@
- #include "../include/menus.h"
+#include "../include/menus.h"
 
 void menu_principal() {
     int numero = 0;
@@ -49,14 +49,16 @@ void menu_principal() {
 
 
 int login() { // da 1 si el login es correcto y 0 si mama el login
-    char* pass = malloc(sizeof(char) * 100);
+    char* pass;
+    char* salt;
+    char* iv;
 
     while (1)
     {
 
         // Entrar el User
         //char input[100]; // Assuming the input has at most 100 characters
-        char users[] = "data/users.txt";
+        char users[] = "../data/users.txt";
 
         if (!file_exists(users)) {
             fprintf(stderr, "Error: archivo no existe\n");
@@ -66,18 +68,13 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
         printf("Entre su user: \n");
         char* input = get_string_50();
 
-        // Remove the trailing newline character, if any
-        size_t input_length = strlen(input);
-        if (input[input_length - 1] == '\n')
-            input[input_length - 1] = '\0';
-
-        if (find_user(input, users, &pass))
+        if (find_user(input, users, &pass, &salt, &iv))
         {
             size_t pass_length = strlen(pass);
             if (pass[pass_length - 1] != '\0')
                 pass[pass_length - 1] = '\0';
 
-            printf("%s\n", pass);
+            printf("Contrasena encriptada base64: %s, salt base64: %s, iv base64: %s \n", pass, salt, iv);
             // probar contrasena
             while (1)
             {
@@ -86,7 +83,35 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
                 // Remove the trailing newline character, if any
 
                 printf("input: %s\n", input);
-                if (strcmp(input, pass) == 0)
+
+                size_t encrypted_password_blen;
+                unsigned char* encrypted_password_b = base64_decode(pass, strlen(pass), &encrypted_password_blen);
+
+                size_t salt_blen;
+                unsigned char* salt_b = base64_decode(salt, strlen(salt), &salt_blen);
+
+                size_t iv_blen;
+                unsigned char* iv_b = base64_decode(iv, strlen(iv), &iv_blen);
+
+                unsigned char key[32];
+
+                if (!deriveKey(input, key, salt_b)) {
+                    fprintf(stderr, "Key derivation failed.\n");
+                    return 0;
+                }
+
+                char* output = malloc(sizeof(char)*50);
+
+                if (output == NULL) {
+                    printf("Error allocating memory\n");
+                    return 1;
+                }
+
+                int output_len = decryptAES256(encrypted_password_b, encrypted_password_blen, key, output, iv_b);
+
+                printf("Despues de encriptar da: %s", output);
+
+                if (strcmp(input, output) == 0)
                 { // si la contrasena es la misma que pass.
                     printf("login exitoso\n");
                     return 1;
@@ -107,11 +132,12 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
 int registrar() {
 
     char users[] = "../data/users.txt";
-    char* buffer = malloc(sizeof(char)*50);
-    // cosas que determina el usuariok, input
+
+    // cosas que determina el usuario, input
     char* new_user;
     char* new_password;
     char* new_password2;
+
     // cosas que se ocupan para nuevo usuario y que se generan con input del usuario
     unsigned char encrypted_password[1024 + EVP_MAX_BLOCK_LENGTH];
     unsigned char key[32];  // AES-256 key length in bytes (32)
@@ -120,6 +146,7 @@ int registrar() {
 
     int iv_length = EVP_CIPHER_iv_length(EVP_aes_256_cbc());
     int salt_length = sizeof(salt);
+
     // para registro en .txt
     char* base64_encryptedPassword;
     char* base64_salt;
@@ -138,7 +165,7 @@ int registrar() {
         printf("Ingrese su nombre de usuario (menos de 50 caracteres): ");
         new_user = get_string_50();
 
-        if (find_user(new_user, users, &buffer) == 0) {
+        if (!check_user(new_user, users)) {
             while (1) {
                 // new_password input and confirmation
                 printf("Ingrese su contrasena (menos de 50 caracteres): ");
@@ -164,7 +191,7 @@ int registrar() {
                     base64_salt = base64_encode(salt, salt_length, &output_size);
                     base64_iv = base64_encode(iv, iv_length, &output_size);
 
-                    if (end_character(users) != '\n' || end_character(users) != '\r') {
+                    if ((end_character(users) != 0) && (end_character(users) != '\n')) {
                         new_line(users);
                     }
 
@@ -175,7 +202,7 @@ int registrar() {
                     register_string(base64_salt, users);
                     space(users);
                     register_string(base64_iv, users);
-                    
+
 
                     free(new_user);
                     free(new_password);
@@ -189,9 +216,8 @@ int registrar() {
             }
         }
         else {
-            free(buffer);
             free(new_user);
             printf("El usuario ya existe. Intente con un nuevo usuario. \n");
         }
-    } 
+    }
 }
