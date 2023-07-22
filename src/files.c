@@ -40,6 +40,7 @@ char* get_string_50() {
 
         if (inputLength == INITIAL_BUFFER - 1) {
             fprintf(stderr, "String muy largo xd, > 50\n");
+            free(input);
             return NULL;
 
         }
@@ -51,15 +52,6 @@ char* get_string_50() {
 
     return input;
 
-}
-
-void print_str(char* string) {
-    int i = 0;
-    while (string[i] != '\0') {
-        printf("%c", string[i]);
-        i++;
-    }
-    printf("\n");
 }
 
 int register_string(const char* string, const char* file) {
@@ -125,76 +117,74 @@ int space(const char* file) {
 }
 
 
-int find_user(char* input, char* users, char** pass, char **salt, char **vect) {
-
+int find_user(char* input, char* users, char** pass, char** salt, char** vect) {
     char delim[] = "|";
     FILE* file = fopen(users, "r");
-    if (file == NULL)
-    {
+    if (file == NULL) {
         printf("archivo no encontrado: %s\n", users);
         return 0;
     }
 
-    char line[1450]; // Assuming each line in the file has at most 100 characters
+    char line[1450]; // Assuming each line in the file has at most 1450 characters
 
-    while (fgets(line, sizeof(line), file) != NULL)
-    {
+    while (fgets(line, sizeof(line), file) != NULL) {
+        char* line_copy = strdup(line); // Make a copy of the line
 
-        char* u =strtok(line, delim);
-        if (strcmp(input, u) == 0)
-        {
+        char* u = strtok(line_copy, delim);
+        if (strcmp(input, u) == 0) {
             fclose(file);
 
-
             char* temp_pass = strtok(NULL, delim);
-            *pass = malloc(strlen(temp_pass) + 1); // Allocate memory for password (+1 for null terminator)
-            strcpy(*pass, temp_pass);
-
+            *pass = strdup(temp_pass); // Allocate memory for password and copy it
             char* temp_salt = strtok(NULL, delim);
-            *salt = malloc(strlen(temp_salt) + 1);
-            strcpy(*salt, temp_salt);
-
+            *salt = strdup(temp_salt); // Allocate memory for salt and copy it
             char* temp_vect = strtok(NULL, delim);
-            *vect = malloc(strlen(temp_vect) + 1);
-            strcpy(*vect, temp_vect);
+            *vect = strdup(temp_vect); // Allocate memory for vect and copy it
+
+            free(line_copy); // Free the dynamically allocated line_copy
 
             return 1; // Found the input string in the file
         }
+
+        free(line_copy); // Free the dynamically allocated line_copy
     }
 
+    fclose(file);
     *pass = NULL;
-    *salt= NULL;
+    *salt = NULL;
     *vect = NULL;
 
-    fclose(file);
-    return 0; // Input string not found in the file
+    return 0; // Input string not found in the file
 }
 
 int check_user(char* input, char* users) {
-
     char delim[] = "|";
     FILE* file = fopen(users, "r");
-    if (file == NULL)
-    {
+    if (file == NULL) {
         printf("archivo no encontrado: %s\n", users);
         return 0;
     }
 
-    char line[1450]; // Assuming each line in the file has at most 100 characters
+    char line[1450]; // Assuming each line in the file has at most 1450 characters
 
-    while (fgets(line, sizeof(line), file) != NULL)
-    {
+    while (fgets(line, sizeof(line), file) != NULL) {
+        char* line_copy = strdup(line); // Make a copy of the line
 
-        char* u =strtok(line, delim);
-        if (strcmp(input, u) == 0)
-        {
+        char* u = strtok(line_copy, delim);
+        if (strcmp(input, u) == 0) {
             fclose(file);
+
+            free(line_copy); // Free the dynamically allocated line_copy
 
             return 1; // Found the input string in the file
         }
+
+        free(line_copy); // Free the dynamically allocated line_copy
     }
+
     fclose(file);
-    return 0; // Input string not found in the file
+
+    return 0; // Input string not found in the file
 }
 
 int end_character(const char* file) {

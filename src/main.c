@@ -11,7 +11,6 @@
 int main() {
 
     char users[] = "../data/users.txt";
-    char* buffer = malloc(sizeof(char)*50);
     // cosas que determina el usuario, input
     char* new_user;
     char* new_password;
@@ -126,17 +125,17 @@ int main() {
 
     printf("User: ");
     char* input = get_string_50();
-    char* password_b64 = malloc(sizeof(char)*100);
+    char* password_b64[100];
     if (password_b64 == NULL){
         printf("Erreur d'allocation");
         return 1;
     }
-    char* salt_b64 = malloc(sizeof(char)*8);
+    char* salt_b64[8];
     if (salt_b64 == NULL){
         printf("Erreur d'allocation");
         return 1;
     }
-    char* iv_b64 = malloc(sizeof(char)*16);
+    char* iv_b64[16];
     if (iv_b64 == NULL){
         printf("Erreur d'allocation");
         return 1;
@@ -188,7 +187,16 @@ int main() {
     unsigned char* iv_b= base64_decode(iv_b64, strlen(iv_b64), &iv_blen);
     printf("The size of the base64 encode is: %zu\n", iv_blen);
 
-    unsigned char keyt[32];
+    unsigned char* keyt = malloc(sizeof(unsigned char) * 32);
+
+    if (keyt == NULL) {
+        printf("Error of memory allocation\n");
+        free(password_b);
+        free(salt_b);
+        free(iv_b);
+        free(keyt);
+        return 1;
+    }
 
     if (!deriveKey(pass, keyt, salt_b)) {
         fprintf(stderr, "Key derivation failed.\n");
@@ -239,6 +247,17 @@ int main() {
     else {
         printf("Access denied");
     }
+
+    free(password_b);
+    free(salt_b);
+    free(iv_b);
+    free(keyt);
+    free(output);
+    free(new_user);
+    free(new_password);
+    free(base64_encryptedPassword);
+    free(base64_salt);
+    free(base64_iv);
 
     return 0;
 

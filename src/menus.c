@@ -53,11 +53,8 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
     char* salt;
     char* iv;
 
-    while (1)
-    {
+    while (1) {
 
-        // Entrar el User
-        //char input[100]; // Assuming the input has at most 100 characters
         char users[] = "../data/users.txt";
 
         if (!file_exists(users)) {
@@ -66,9 +63,9 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
         }
 
         printf("Entre su user: \n");
-        char* input = get_string_50();
+        char* user_input = get_string_50();
 
-        if (find_user(input, users, &pass, &salt, &iv))
+        if (find_user(user_input, users, &pass, &salt, &iv))
         {
             size_t pass_length = strlen(pass);
             if (pass[pass_length - 1] != '\0')
@@ -79,10 +76,10 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
             while (1)
             {
                 printf("Entre su contrasena: \n");
-                input = get_string_50();
+                char* pass_input = get_string_50();
                 // Remove the trailing newline character, if any
 
-                printf("input: %s\n", input);
+                printf("input: %s\n", pass_input);
 
                 size_t encrypted_password_blen;
                 unsigned char* encrypted_password_b = base64_decode(pass, strlen(pass), &encrypted_password_blen);
@@ -95,7 +92,7 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
 
                 unsigned char key[32];
 
-                if (!deriveKey(input, key, salt_b)) {
+                if (!deriveKey(pass_input, key, salt_b)) {
                     fprintf(stderr, "Key derivation failed.\n");
                     return 0;
                 }
@@ -111,19 +108,41 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
 
                 printf("Despues de encriptar da: %s", output);
 
-                if (strcmp(input, output) == 0)
+                if (strcmp(user_input, output) == 0)
                 { // si la contrasena es la misma que pass.
                     printf("login exitoso\n");
+
+                    free(user_input);
+                    free(pass_input);
+                    
+                    free(pass);
+                    free(salt);
+                    free(iv);
+
+                    free(encrypted_password_b);
+                    free(salt_b);
+                    free(iv_b);
+
+
                     return 1;
                 }
-                else
-                {
+                else {
+                    free(user_input);
+                    free(pass_input);
+                    
+                    free(pass);
+                    free(salt);
+                    free(iv);
+
+                    free(encrypted_password_b);
+                    free(salt_b);
+                    free(iv_b);
                     printf("Contrasena incorrecta, intente de nuevo.\n");
                 }
             }
         }
-        else
-        {
+        else {
+            free(user_input);
             printf("Error: User no encontrado. Intente de nuevo.\n");
         }
     }
@@ -203,6 +222,9 @@ int registrar() {
                     space(users);
                     register_string(base64_iv, users);
 
+                    free(base64_encryptedPassword);
+                    free(base64_salt);
+                    free(base64_iv);
 
                     free(new_user);
                     free(new_password);

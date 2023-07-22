@@ -10,8 +10,6 @@
 int file_exists(const char* name);
 // returna string inferior a 50 caracteres, NULL si > 50
 char* get_string_50();
-// print string
-void print_str(char *string);
 // 1 si el regitro se hizo 0 si hubo un problema 
 int register_string(const char *string, const char *file);
 // va a la siguiente linea, 1 si lo logro 0 si no
