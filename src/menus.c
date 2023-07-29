@@ -226,6 +226,11 @@ int registrar() {
                     free(base64_salt);
                     free(base64_iv);
 
+                    char* path = file_path(new_user);
+
+                    init_bifile(path);
+
+                    free(path);
                     free(new_user);
                     free(new_password);
                     return 1;

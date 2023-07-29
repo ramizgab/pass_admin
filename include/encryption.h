@@ -1,3 +1,6 @@
+#ifndef ENCRYPTION_H
+#define ENCRYPTION_H
+
 #include <stdio.h>
 #include <string.h>
 #include <openssl/evp.h>
@@ -21,3 +24,5 @@ char* base64_encode(const unsigned char* data, size_t input_length, size_t* outp
 unsigned char* base64_decode(const char* encoded_data, size_t input_length, size_t* output_length);
 // Compares to binary arrays
 int compare_binary_keys(const unsigned char* key1, size_t key1_length, const unsigned char* key2, size_t key2_length);
+
+#endif

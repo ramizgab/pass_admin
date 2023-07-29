@@ -209,3 +209,252 @@ int end_character(const char* file) {
     fclose(archivo);
     return last_char;
 }
+
+void init_bifile(const char* filename) {
+    FileInfo counter;
+
+    counter.data_count = 0;
+
+    FILE* file = fopen(filename, "wb");
+    if ( file ==  NULL) {
+        printf("Failed initializing binary file %s \n", filename);
+        return;
+    }
+
+    if (fwrite(&counter, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed inputting the data to the binary file.\n");
+    }
+
+    fclose(file);
+}
+
+void adddata_bifile(const char* filename, const UserData data) {
+    FILE* file = fopen(filename, "rb+");
+    if (file == NULL) {
+        printf("Failed opening binary file: %s \n", filename);
+        return;
+    }
+
+    FileInfo info;
+    if (fread(&info, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed to read file %s information.\n", filename);
+        fclose(file);
+        return;
+    }
+
+    info.data_count++;
+
+    fseek(file, 0, SEEK_SET);
+    if (fwrite(&info, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed to write in file %s information.\n", filename);
+        fclose(file);
+        return;
+    }
+
+    fseek(file, 0, SEEK_END);
+    if (fwrite(&data, sizeof(UserData), 1, file) != 1) {
+        printf("Failed to write in file %s information.\n", filename);
+        fclose(file);
+        return;
+    }
+    fclose(file);
+
+}
+
+int search_name(const char* filename, const char* name) {
+
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Failed opening binary file: %s \n", filename);
+        return -1;
+    }
+
+    FileInfo info;
+     if (fread(&info, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed to read file %s information.\n", filename);
+        fclose(file);
+        return -1;
+    }
+
+    UserData* data = malloc(sizeof(UserData) * info.data_count);
+    if (data == NULL) {
+        printf("Failed allocating memory\n");
+        return -1;
+    }
+
+    fseek(file, sizeof(FileInfo), SEEK_SET);
+
+    if (fread(data, sizeof(UserData), info.data_count, file) != info.data_count) {
+        printf("Failed to read in file %s information.\n", filename);
+        fclose(file);
+        free(data);
+        return -1;
+    }
+
+    for (size_t i = 0; i < info.data_count; i++) {
+        if ( strcmp(data[i].title, name) == 0) {
+            printf("Name: %s\n", data[i].title);
+            printf("Site: %s\n", data[i].url);
+            printf("Username: %s\n", data[i].username);
+            printf("Encrypted Password: ");
+            for (size_t j = 0; j < 16; j++) {
+                printf("%02X ", data[i].encrypted_password[i]);
+            }
+            printf("\n");
+            return i;
+        }
+            
+    }
+
+    fclose(file);
+    free(data);
+    return -1;
+}
+
+void del_data(const char* filename, const char* name) {
+    
+    FILE* file = fopen(filename, "rb+");
+    if (file == NULL) {
+        printf("Failed opening binary file: %s \n", filename);
+        return;
+    }
+
+    FileInfo info;
+    if (fread(&info, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed to read file %s information.\n", filename);
+        fclose(file);
+        return;
+    }
+
+    UserData data;
+    int found = 0;
+    size_t indicator = 0;
+
+    for (size_t i = 0; i < info.data_count; i++) {
+        if (fread(&data, sizeof(UserData), 1, file) != 1) {
+            printf("Failed to read in file %s information.\n", filename);
+            fclose(file);
+            return;
+        }
+
+        if ( strcmp(data.title, name) == 0) {
+            found = 1;
+            indicator = i;
+            break;
+        }
+    }
+
+    if (!found) {
+        printf("Data with title %s is not found in file", name);
+        fclose(file);
+        return;
+    }
+
+    if (indicator == info.data_count - 1) {
+        info.data_count--;
+        fseek(file, 0, SEEK_SET);
+        if (fwrite(&info, sizeof(FileInfo), 1, file) != 1) {
+            printf("Failed to write file information.\n");
+            fclose(file);
+            return;
+        }
+
+        fclose(file);
+    }
+    else {
+        
+        for (size_t i = indicator; i < info.data_count -1; i++) {
+            //leer
+            if (fread(&data, sizeof(UserData), 1, file) != 1) {
+            printf("Failed to read in file %s information.\n", filename);
+            fclose(file);
+            return;
+            }
+            // -2
+            fseek(file, -2 * sizeof(UserData), SEEK_CUR);
+            // escribir
+            if (fwrite(&data, sizeof(UserData), 1, file) != 1) {
+            printf("Failed to write in file %s information.\n", filename);
+            fclose(file);
+            return;
+            }
+            // +1
+            fseek(file, sizeof(UserData), SEEK_CUR);
+        }
+
+        info.data_count--;
+        fseek(file, 0, SEEK_SET);
+        if (fwrite(&info, sizeof(FileInfo), 1, file) != 1) {
+            printf("Failed to write file information.\n");
+            fclose(file);
+            return;
+        }
+        fclose(file);
+    }
+
+}
+
+void print_all_bidata(const char* filename) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("Failed opening binary file: %s\n", filename);
+        return;
+    }
+
+    FileInfo info;
+    if (fread(&info, sizeof(FileInfo), 1, file) != 1) {
+        printf("Failed to read file %s information.\n", filename);
+        fclose(file);
+        return;
+    }
+
+    UserData* data = malloc(sizeof(UserData) * info.data_count);
+    if (data == NULL) {
+        printf("Failed allocating memory.\n");
+        fclose(file);
+        return;
+    }
+
+    fseek(file, sizeof(FileInfo), SEEK_SET);
+
+    if (fread(data, sizeof(UserData), info.data_count, file) != info.data_count) {
+        printf("Failed to read in file %s information.\n", filename);
+        fclose(file);
+        free(data);
+        return;
+    }
+
+    for (size_t i = 0; i < info.data_count; i++) {
+        printf("Data %zu:\n", i + 1);
+        printf("Title: %s\n", data[i].title);
+        printf("Username: %s\n", data[i].username);
+        printf("URL: %s\n", data[i].url);
+        printf("Encrypted Password: ");
+        for (size_t j = 0; j < 16; j++) {
+            printf("%02X ", data[i].encrypted_password[j]);
+        }
+        printf("\n\n");
+    }
+
+    fclose(file);
+    free(data);
+}
+
+int bifile_exists(const char* filename) {
+    FILE* file = fopen(filename, "rb");
+
+    if (file != NULL){
+        fclose(file);
+        return 1;
+    }
+
+    return 0;
+}
+
+char* file_path(const char* filename) {
+    char* res = malloc(sizeof(char) * 100);
+    strcpy(res,"../data/");
+    strcat(res, filename);
+    strcat(res,".bin");
+    return res;
+}
