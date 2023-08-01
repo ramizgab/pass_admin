@@ -22,6 +22,16 @@ void menu_principal() {
         printf("\n");
 
         if (numero == 1) {
+            char * archivo_user;
+            if(!login(&archivo_user)){
+                printf("login fracasado\n");
+            }
+            else{
+                if(archivo_user!=NULL){
+                    printf("se abre el archivo %s.bin\n", archivo_user);
+                }
+                printf("login exitoso\n");
+            }
             printf("Buenisimo, bienvenido al menu login\n");
             break;  // Exit the loop
         }
@@ -48,7 +58,7 @@ void menu_principal() {
 }
 
 
-int login() { // da 1 si el login es correcto y 0 si mama el login
+int login(char **archivo_user) { // da 1 si el login es correcto y 0 si mama el login
     char* pass;
     char* salt;
     char* iv;
@@ -68,8 +78,8 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
         if (find_user(user_input, users, &pass, &salt, &iv))
         {
             size_t pass_length = strlen(pass);
-            if (pass[pass_length - 1] != '\0')
-                pass[pass_length - 1] = '\0';
+            /*if (pass[pass_length - 1] != '\0')
+                pass[pass_length - 1] = '\0';*/
 
             printf("Contrasena encriptada base64: %s, salt base64: %s, iv base64: %s \n", pass, salt, iv);
             // probar contrasena
@@ -97,42 +107,44 @@ int login() { // da 1 si el login es correcto y 0 si mama el login
                     return 0;
                 }
 
-                char* output = malloc(sizeof(char)*50);
+                char output[50];
 
                 if (output == NULL) {
                     printf("Error allocating memory\n");
                     return 1;
                 }
 
-                int output_len = decryptAES256(encrypted_password_b, encrypted_password_blen, key, output, iv_b);
+                int output_len = encryptAES256(pass_input, strlen(pass_input), key, output, iv_b);
 
-                printf("Despues de encriptar da: %s", output);
+                printf("Despues de encriptar da: %s\n", output);
+                printf("contrasena encriptada binaria del archivo: %s\n", encrypted_password_b);
 
-                if (strcmp(user_input, output) == 0)
+                if (compare_binary_keys(output, output_len, encrypted_password_b, encrypted_password_blen))//(strcmp(pass_input, output) == 0)
                 { // si la contrasena es la misma que pass.
                     printf("login exitoso\n");
 
+                    *archivo_user=strdup(user_input);
+                    
                     free(user_input);
                     free(pass_input);
-                    
+                   /* 
                     free(pass);
                     free(salt);
                     free(iv);
-
+*/
                     free(encrypted_password_b);
                     free(salt_b);
                     free(iv_b);
-
 
                     return 1;
                 }
                 else {
                     free(user_input);
                     free(pass_input);
-                    
+                   /* 
                     free(pass);
                     free(salt);
-                    free(iv);
+                    free(iv);*/
 
                     free(encrypted_password_b);
                     free(salt_b);
