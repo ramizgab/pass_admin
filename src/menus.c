@@ -124,14 +124,14 @@ int login(char **archivo_user) { // da 1 si el login es correcto y 0 si mama el 
                     printf("login exitoso\n");
 
                     *archivo_user=strdup(user_input);
-                    
+
                     free(user_input);
                     free(pass_input);
-                   /* 
+                    
                     free(pass);
                     free(salt);
                     free(iv);
-*/
+
                     free(encrypted_password_b);
                     free(salt_b);
                     free(iv_b);
@@ -141,10 +141,10 @@ int login(char **archivo_user) { // da 1 si el login es correcto y 0 si mama el 
                 else {
                     free(user_input);
                     free(pass_input);
-                   /* 
+                   
                     free(pass);
                     free(salt);
-                    free(iv);*/
+                    free(iv);
 
                     free(encrypted_password_b);
                     free(salt_b);
