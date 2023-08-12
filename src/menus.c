@@ -29,6 +29,7 @@ void menu_principal() {
             else{
                 if(archivo_user!=NULL){
                     printf("se abre el archivo %s.bin\n", archivo_user);
+                    menu_usuario(archivo_user);
                 }
                 printf("login exitoso\n");
             }
@@ -259,4 +260,32 @@ int registrar() {
             printf("El usuario ya existe. Intente con un nuevo usuario. \n");
         }
     }
+}
+
+
+int menu_usuario(char * usuario){
+
+    int numero = 0;
+
+    printf("--------------------- seleccione una opción -------------------- \n");
+    printf("|   1.Mostrar contraseñas                                       | \n");
+    printf("|   2.Agregar contraseñas                                       | \n");
+    printf("|   3.Eliminar contraseñas                                      | \n");
+    printf("----------------------------------------------------------------- \n");
+    printf("Ingrese el numero deseado: ");
+
+    if (scanf("%d", &numero) != 1) {
+            printf("Error: numero no valido. Por favor, intente nuevamente.\n");
+            // Clear the input buffer
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF);
+            //continue;  // Ask for input again
+        }
+    printf("\n");
+
+    printf("La opcion que eligio es %d\n", numero);
+
+
+    return 1;
+
 }
